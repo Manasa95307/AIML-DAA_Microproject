@@ -2,7 +2,7 @@ GitHub repo link: https://github.com/Manasa95307/AIML-DAA_Microproject.git
 Deployment link: https://afterdark-nu.vercel.app/
 
 
-# Nightfall Survival — AIML + DAA Microproject
+# After Dark Survival — AIML + DAA Microproject
 
 A small top-down zombie survival game made with only HTML, CSS and Vanilla JavaScript.
 
