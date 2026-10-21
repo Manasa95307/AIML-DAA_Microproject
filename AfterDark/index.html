@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nightfall Survival — AIML × DAA</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game">
+
+  <section id="menu" class="screen active">
+    <div class="menu-card">
+      <div class="menu-kicker">AIML × DAA MICROPROJECT</div>
+      <h1>AFTER <span>DARK</span></h1>
+      <p class="tagline">THE CITY IS INFECTED. GET TO EXTRACTION.</p>
+      <div class="menu-badges">
+        <span>🤖 Intelligent Zombies</span><span>🕸 Graph Search</span><span>⚡ Survival Combat</span>
+      </div>
+      <button id="startGame" class="btn primary">START GAME</button>
+      <button id="openHow" class="btn ghost">HOW TO PLAY</button>
+      <button id="openAI" class="btn ghost">AI SYSTEM</button>
+    </div>
+  </section>
+
+  <section id="howModal" class="modal">
+    <div class="modal-card">
+      <button class="close" data-close="howModal">×</button>
+      <div class="kicker">FIELD GUIDE</div><h2>HOW TO PLAY</h2>
+      <div class="how-grid">
+        <div><b>W A S D</b><span>Move around the city</span></div>
+        <div><b>LEFT CLICK</b><span>Shoot toward the cursor</span></div>
+        <div><b>R</b><span>Reload your weapon</span></div>
+        <div><b>SPACE</b><span>Dash away from danger</span></div>
+        <div><b>💊</b><span>Collect medkits for health</span></div>
+        <div><b>⚡</b><span>Collect energy to restore dash</span></div>
+      </div>
+      <p class="modal-tip"><strong>Goal:</strong> survive the wave and reach the glowing extraction zone. Zombies use graph search, rules and heuristic decisions to chase you.</p>
+      <button class="btn primary" data-close="howModal">GOT IT</button>
+    </div>
+  </section>
+
+  <section id="aiModal" class="modal">
+    <div class="modal-card">
+      <button class="close" data-close="aiModal">×</button>
+      <div class="kicker">UNDER THE HOOD</div><h2>AI SYSTEM</h2>
+      <div class="concept-grid">
+        <div><b>INTELLIGENT AGENT</b><span>Perceive → reason → act</span></div>
+        <div><b>STATE SPACE</b><span>Positions, health, resources and threats</span></div>
+        <div><b>BFS</b><span>Shortest route through the map graph</span></div>
+        <div><b>DFS</b><span>Explores reachable regions</span></div>
+        <div><b>BEST-FIRST</b><span>Prioritizes promising movement</span></div>
+        <div><b>HEURISTIC</b><span>Scores distance, danger and resources</span></div>
+        <div><b>RULE ENGINE</b><span>Chase, retreat, flank and search rules</span></div>
+        <div><b>KNOWLEDGE</b><span>Map, resources and visible player state</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="screen game-screen">
+    <header class="hud-top">
+      <div class="brand">NIGHTFALL <span>SURVIVAL</span></div>
+      <div class="level-chip">LEVEL <b id="level">1</b> · <span id="difficulty">EASY</span></div>
+      <div class="wave">WAVE <b id="wave">01</b></div>
+      <div class="timer">◷ <b id="timer">03:00</b></div>
+    </header>
+
+    <aside class="player-hud panel">
+      <div class="hud-title">SURVIVOR</div>
+      <div class="bar-label">❤️ <span id="hpText">100 / 100</span></div>
+      <div class="bar red"><i id="hpBar"></i></div>
+      <div class="bar-label">🔫 <span id="ammoText">12 / 30</span></div>
+      <div class="bar blue"><i id="ammoBar"></i></div>
+      <div class="bar-label">⚡ <span id="energyText">100%</span></div>
+      <div class="bar yellow"><i id="energyBar"></i></div>
+    </aside>
+
+    <div class="side-stack">
+      <section class="side-widget panel" id="objectiveWidget">
+        <button class="widget-toggle" data-widget="objectiveWidget" aria-label="Toggle objective">
+          <span>🎯 OBJECTIVE</span><b>−</b>
+        </button>
+        <div class="widget-body objective-body">
+          <label><input id="objSurvive" type="checkbox" disabled> Survive until extraction</label>
+          <label><input id="objReach" type="checkbox" disabled> Reach extraction point</label>
+          <label><input id="objMed" type="checkbox" disabled> Collect 2 medkits (<span id="medCount">0</span>/2)</label>
+        </div>
+      </section>
+
+      <section class="side-widget panel" id="mapWidget">
+        <button class="widget-toggle" data-widget="mapWidget" aria-label="Toggle map">
+          <span>🗺️ MAP</span><b>−</b>
+        </button>
+        <div class="widget-body map-body">
+          <canvas id="miniMap" width="180" height="125"></canvas>
+        </div>
+      </section>
+
+      <section class="side-widget panel ai-widget" id="aiWidget">
+        <button class="widget-toggle" id="aiWidgetToggle" aria-label="Toggle AI analysis">
+          <span>🤖 AI ANALYSIS</span><b>−</b>
+        </button>
+        <div class="widget-body ai-body">
+          <div class="ai-state"><span>CURRENT STATE</span><b id="aiState">SEARCHING</b></div>
+          <div class="ai-row"><span>PLAYER DISTANCE</span><b id="aiDistance">—</b></div>
+          <div class="ai-row"><span>BFS ROUTE</span><b id="aiBfs">—</b></div>
+          <div class="ai-row"><span>BEST-FIRST</span><b id="aiBest">—</b></div>
+          <div class="ai-section"><small>HEURISTIC EVALUATION</small><div id="aiScores"></div></div>
+          <div class="ai-section"><small>RULE TRIGGERED</small><p id="aiRule">Waiting for decision…</p></div>
+          <div class="ai-decision"><small>FINAL DECISION</small><strong id="aiDecision">—</strong></div>
+        </div>
+      </section>
+    </div>
+
+
+    <main id="world" class="world">
+      <canvas id="worldCanvas"></canvas>
+      <div id="worldVignette"></div>
+      <div id="toast"></div>
+    </main>
+
+    <div class="controls panel">
+      <div class="keys"><div>W</div><div class="middle"><span>A</span><span>S</span><span>D</span></div><small>MOVE</small></div>
+      <div class="control-help"><b>LEFT CLICK</b><span>SHOOT</span><b>R</b><span>RELOAD</span></div>
+    </div>
+
+    <div class="mobile-controls" aria-label="Phone movement controls">
+      <button class="move-btn up" data-move="up">▲</button>
+      <button class="move-btn left" data-move="left">◀</button>
+      <button class="move-btn down" data-move="down">▼</button>
+      <button class="move-btn right" data-move="right">▶</button>
+      <button class="dash-touch" id="dashBtn">⚡</button>
+    </div>
+
+    <div class="combat-buttons">
+      <button id="shootBtn">◉<span>SHOOT</span></button>
+      <button id="reloadBtn">R<span>RELOAD</span></button>
+    </div>
+
+    <div class="event-feed panel" id="eventFeed"></div>
+    <div id="damageFlash"></div>
+
+    <div id="pauseOverlay" class="pause-overlay">
+      <div class="pause-card">
+        <div class="pause-icon">Ⅱ</div>
+        <div class="pause-kicker">GAME PAUSED</div>
+        <h2>TAKE A BREATH</h2>
+        <p>Press <b>SPACE</b> to continue</p>
+        <button id="resumeBtn" class="btn primary">RESUME</button>
+      </div>
+    </div>
+    <div id="levelCompleteOverlay" class="level-complete-overlay">
+      <div class="confetti" aria-hidden="true"></div>
+      <div class="complete-card">
+        <div class="complete-ai">🤖 AI SURVIVAL SYSTEM</div>
+        <div class="complete-icon">🎉</div>
+        <h2>CONGRATULATIONS!</h2>
+        <p id="completeText">YOU SURVIVED LEVEL 1</p>
+        <div class="complete-next" id="completeNext">PREPARING NEXT LEVEL…</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="screen result-screen">
+    <div class="result-card">
+      <div id="resultIcon">💀</div>
+      <div class="menu-kicker">BATTLE COMPLETE</div>
+      <h2 id="resultTitle">YOU WERE OVERRUN</h2>
+      <p id="resultReason">The infected reached you.</p>
+      <div class="result-stats">
+        <div><b id="statTime">00:00</b><span>SURVIVAL TIME</span></div>
+        <div><b id="statKills">0</b><span>ZOMBIES DEFEATED</span></div>
+        <div><b id="statAI">0</b><span>AI DECISIONS</span></div>
+        <div><b id="statBFS">0</b><span>BFS SEARCHES</span></div>
+      </div>
+      <button id="playAgain" class="btn primary">PLAY AGAIN</button>
+      <button id="backMenu" class="btn ghost">MAIN MENU</button>
+    </div>
+  </section>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
